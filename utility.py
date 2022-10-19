@@ -1,6 +1,8 @@
 
+from distutils.command.clean import clean
 import os
 import sys
+import shutil
 import urllib.request
 from datetime import *
 from pathlib import Path
@@ -118,7 +120,11 @@ def download_monthly_klines(trading_type, symbols, intervals, start_date, end_da
 
         current += 1
 
+def clean_data(folder):
+    shutil.rmtree(os.path.join(os.getcwd(), folder))
+
 
 if __name__ == '__main__':
     download_monthly_klines('spot', ['BTCUSDT'], ['1d'],
                             '2022-06-01', '2022-09-30', os.path.join(os.getcwd(), 'train'))
+    # clean_data('train')
