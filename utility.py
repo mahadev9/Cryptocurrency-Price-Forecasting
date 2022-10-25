@@ -2,7 +2,9 @@
 from distutils.command.clean import clean
 import os
 import sys
+import glob
 import shutil
+import zipfile
 import urllib.request
 from datetime import *
 from pathlib import Path
@@ -80,6 +82,10 @@ def download_file(base_path, file_name, date_range=None, folder=None):
                 sys.stdout.write("\r[%s%s]" % ('#' * done, '.' * (50-done)))
                 sys.stdout.flush()
 
+        with zipfile.ZipFile(save_path, 'r') as zip_file:
+            path = save_path.split(os.sep)[-3:-1]
+            zip_file.extractall(os.path.join(*path))
+
     except urllib.error.HTTPError:
         print("\nFile not found: {}".format(download_url))
         pass
@@ -120,11 +126,12 @@ def download_monthly_klines(trading_type, symbols, intervals, start_date, end_da
 
         current += 1
 
+
 def clean_data(folder):
     shutil.rmtree(os.path.join(os.getcwd(), folder))
 
 
 if __name__ == '__main__':
-    download_monthly_klines('spot', ['BTCUSDT'], ['1d'],
-                            '2022-06-01', '2022-09-30', os.path.join(os.getcwd(), 'train'))
+    download_monthly_klines('spot', ['BTCUSDT'], ['15m'],
+                            '2019-01-01', '2019-07-31', os.path.join(os.getcwd(), 'train'))
     # clean_data('train')
