@@ -1,5 +1,4 @@
 
-from distutils.command.clean import clean
 import os
 import sys
 import glob
