@@ -6,14 +6,32 @@ import glob
 import shutil
 import zipfile
 import urllib.request
+import pandas as pd
+import numpy as np
 from datetime import *
 from pathlib import Path
 
 BASE_URL = 'https://data.binance.vision/'
 
 
+OPEN_INDEX = 1
+HIGH_INDEX = 2
+LOW_INDEX = 3
+CLOSE_INDEX = 4
+VOLUME_INDEX = 5
+IGNORE_INDEX = 11
+
+BTC = 'BTCUSDT'
+ETH = 'ETHUSDT'
+MATIC = 'MATICUSDT'
+BNB = 'BNBUSDT'
+ADA = 'ADAUSDT'
+DOGE = 'DOGEUSDT'
+SYMBOLS = [BTC, ETH, MATIC, BNB, ADA, DOGE]
+
+
 def get_download_url(file_url):
-    return "{}{}".format(BASE_URL, file_url)
+    return '{}{}'.format(BASE_URL, file_url)
 
 
 def get_destination_dir(file_url, folder=None):
@@ -95,6 +113,7 @@ def download_monthly_klines(trading_type, symbols, intervals, start_date, end_da
     current = 0
     date_range = None
     num_symbols = len(symbols)
+    folder = os.path.join(os.getcwd(), folder)
 
     if start_date and end_date:
         date_range = start_date + "_" + end_date
@@ -107,10 +126,10 @@ def download_monthly_klines(trading_type, symbols, intervals, start_date, end_da
     start_date = convert_to_date_object(start_date)
     end_date = convert_to_date_object(end_date)
 
-    print("Found {} symbols".format(num_symbols))
+    print('Found {} symbols'.format(num_symbols))
 
     for symbol in symbols:
-        print("[{}/{}] - start download monthly {} klines ".format(current +
+        print('[{}/{}] - start download monthly {} klines '.format(current +
               1, num_symbols, symbol))
         for interval in intervals:
             for year in years:
@@ -118,9 +137,9 @@ def download_monthly_klines(trading_type, symbols, intervals, start_date, end_da
                     current_date = convert_to_date_object(
                         '{}-{}-01'.format(year, month))
                     if current_date >= start_date and current_date <= end_date:
-                        path = get_path(trading_type, "klines",
-                                        "monthly", symbol, interval)
-                        file_name = "{}-{}-{}-{}.zip".format(
+                        path = get_path(trading_type, 'klines',
+                                        'monthly', symbol, interval)
+                        file_name = '{}-{}-{}-{}.zip'.format(
                             symbol.upper(), interval, year, '{:02d}'.format(month))
                         download_file(path, file_name, date_range, folder)
 
@@ -129,6 +148,37 @@ def download_monthly_klines(trading_type, symbols, intervals, start_date, end_da
 
 def clean_data(folder):
     shutil.rmtree(os.path.join(os.getcwd(), folder))
+
+
+def get_data(folder, symbol):
+    path = os.path.join(folder, symbol, '*.csv')
+    data_files = glob.glob(path)
+    data = []
+    for file in data_files:
+        df = pd.read_csv(file, header=None)
+        data.append(df)
+    return pd.concat(data, axis=0, ignore_index=True)
+
+
+def split_data(df, lookback, train_split_ratio, columns_to_keep):
+    df = df[df[IGNORE_INDEX] == 0]
+    df = df[columns_to_keep]
+    data_raw = df.to_numpy()
+    data = []
+
+    for index in range(len(data_raw) - lookback):
+        data.append(data_raw[index: index + lookback])
+
+    data = np.array(data)
+    train_set_size = int(np.round(train_split_ratio*data.shape[0]))
+
+    x_train = data[:train_set_size, :-1, :]
+    y_train = data[:train_set_size, -1, CLOSE_INDEX-1]
+
+    x_test = data[train_set_size:, :-1]
+    y_test = data[train_set_size:, -1, CLOSE_INDEX-1]
+
+    return [x_train, y_train, x_test, y_test]
 
 
 if __name__ == '__main__':
