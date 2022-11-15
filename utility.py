@@ -159,9 +159,7 @@ def get_data(folder, symbol):
     return pd.concat(data, axis=0, ignore_index=True)
 
 
-def split_data(df, lookback, train_split_ratio, columns_to_keep):
-    df = df[df[IGNORE_INDEX] == 0]
-    df = df[columns_to_keep]
+def split_data(df, lookback, train_split_ratio):
     data_raw = df.to_numpy()
     data = []
 
