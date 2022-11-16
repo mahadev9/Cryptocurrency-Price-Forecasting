@@ -152,6 +152,8 @@ def clean_data(folder):
 def get_data(folder, symbol):
     path = os.path.join(folder, symbol, '*.csv')
     data_files = glob.glob(path)
+    data_files.sort()
+    print(*data_files, sep='\n')
     data = []
     for file in data_files:
         df = pd.read_csv(file, header=None)
@@ -159,7 +161,7 @@ def get_data(folder, symbol):
     return pd.concat(data, axis=0, ignore_index=True)
 
 
-def split_data(df, lookback, train_split_ratio):
+def split_data(df, lookback, train_split_ratio, actual_index):
     data_raw = df.to_numpy()
     data = []
 
@@ -170,10 +172,10 @@ def split_data(df, lookback, train_split_ratio):
     train_set_size = int(np.round(train_split_ratio*data.shape[0]))
 
     x_train = data[:train_set_size, :-1, :]
-    y_train = data[:train_set_size, -1, CLOSE_INDEX-1]
+    y_train = data[:train_set_size, -1, actual_index]
 
     x_test = data[train_set_size:, :-1]
-    y_test = data[train_set_size:, -1, CLOSE_INDEX-1]
+    y_test = data[train_set_size:, -1, actual_index]
 
     return [x_train, y_train, x_test, y_test]
 
