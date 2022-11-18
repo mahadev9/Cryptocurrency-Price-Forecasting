@@ -7,6 +7,8 @@ import zipfile
 import urllib.request
 import pandas as pd
 import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
 from datetime import *
 from pathlib import Path
 
@@ -180,7 +182,29 @@ def split_data(df, lookback, train_split_ratio, actual_index):
     return [x_train, y_train, x_test, y_test]
 
 
-if __name__ == '__main__':
-    download_monthly_klines('spot', ['BTCUSDT'], ['15m'],
-                            '2019-01-01', '2019-07-31', os.path.join(os.getcwd(), 'train'))
-    # clean_data('train')
+def plot_graph(original: pd.DataFrame, predictions: pd.DataFrame = pd.DataFrame()):
+    sns.set_style("darkgrid")
+
+    fig = plt.figure()
+    fig.subplots_adjust(hspace=0.2, wspace=0.2)
+
+    plt.subplot(1, 1, 1)
+    ax = sns.lineplot(x=original.index, y=original[0], label="Data", color='royalblue')
+    if not predictions.empty:
+        ax = sns.lineplot(x=predictions.index, y=predictions[0], label="Testing Prediction", color='tomato')
+    ax.set_title('Stock price', size=14, fontweight='bold')
+    ax.set_xlabel("Days", size=14)
+    ax.set_ylabel("Cost (USDT)", size=14)
+
+    fig.set_figheight(10)
+    fig.set_figwidth(20)
+
+
+def mean_squared_error(actuals, predictions):
+    return np.mean(np.power(actuals - predictions, 2))
+
+
+def rmse(actuals, predictions, train_test):
+    trainScore = np.sqrt(mean_squared_error(actuals, predictions))
+    print('{} Score: {:.3} RMSE'.format(train_test, trainScore))
+
