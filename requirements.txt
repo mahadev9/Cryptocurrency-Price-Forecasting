@@ -1,0 +1,7 @@
+seaborn
+torch
+torchvision
+torchaudio
+tensorflow
+matplotlib
+sklearn
