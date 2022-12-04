@@ -55,7 +55,7 @@ def model_train(model, optim, criterion, num_epochs, train_data, device):
     return hist
 
 
-def model_predictions1(model, data_loader, device, scaler=None):
+def model_predictions(model, data_loader, device, scaler=None):
 
     predictions = np.array([])
     actuals = np.array([])
@@ -69,8 +69,8 @@ def model_predictions1(model, data_loader, device, scaler=None):
             actuals = np.append(actuals, labels.detach().cpu().numpy())
 
     if scaler:
-        predict_test = pd.DataFrame(scaler.inverse_transform(predictions).reshape(-1, 1))
-        original_test = pd.DataFrame(scaler.inverse_transform(actuals).reshape(-1, 1))
+        predict_test = pd.DataFrame(scaler.inverse_transform(predictions.reshape(-1, 1)))
+        original_test = pd.DataFrame(scaler.inverse_transform(actuals.reshape(-1, 1)))
     else:
         predict_test = pd.DataFrame(predictions.reshape(-1, 1))
         original_test = pd.DataFrame(actuals.reshape(-1, 1))
